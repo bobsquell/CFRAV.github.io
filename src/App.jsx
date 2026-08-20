@@ -80,8 +80,7 @@ function App() {
         </div>
       </main>
 
-      <footer className="footer">
-        <p>Publié sur <a href="https://github.com">GitHub</a></p>
+      <footer className="footer"></footer>
       </footer>
     </div>
   )
