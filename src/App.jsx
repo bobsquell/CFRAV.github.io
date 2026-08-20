@@ -79,6 +79,7 @@ function App() {
           <p className="count">{todos.filter(t => !t.done).length} tâche(s) à faire</p>
         </div>
       </main>
+    </div>
   )
 }
 
