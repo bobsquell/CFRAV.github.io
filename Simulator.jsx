@@ -11,7 +11,7 @@ import PositionIcon from "./PositionIcon.jsx";
 
 // Tableau de bord local (dashboardtest) : ne fonctionne que si le client ouvre le site
 // depuis la même machine que le serveur du tableau de bord.
-const DASHBOARD_ORDERS_URL = 'http://localhost:3000/api/orders';
+const DASHBOARD_ORDERS_URL = 'https://cfrav-github-io.onrender.com/api/orders';
 
 const DELIVERY_DEFS = [
   { id: 'terrestre', label: 'Voie terrestre', icon: '🚛', delay: '~30 jours'      },
