@@ -6,19 +6,103 @@ import PositionIcon from './PositionIcon.jsx';
 import { ALL_SLOTS } from './positionSlots.js';
 import './PricesAdmin.css';
 
-function useDebounceWrite(value, url, delay = 1200) {
+// Le tableau de bord (auth + écriture des fichiers du site) tourne en local, sur le poste de l'admin.
+const DASHBOARD_URL = 'http://localhost:3000';
+const TOKEN_KEY = 'cfrav_admin_token';
+
+function useDebounceWrite(value, url, token, delay = 1200) {
   const timerRef = useRef(null);
+  const skipFirst = useRef(true);
   useEffect(() => {
+    if (skipFirst.current) { skipFirst.current = false; return; }
+    if (!token) return;
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(value, null, 2),
       }).catch(() => {});
     }, delay);
     return () => clearTimeout(timerRef.current);
-  }, [value]);
+  }, [value, token]);
+}
+
+// Session admin : jeton obtenu via /api/auth/login, gardé pour l'onglet (sessionStorage)
+function useAdminAuth() {
+  const [token, setToken] = useState(() => {
+    try { return sessionStorage.getItem(TOKEN_KEY) || null; } catch { return null; }
+  });
+
+  const login = async (password) => {
+    const res = await fetch(`${DASHBOARD_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Connexion impossible');
+    setToken(data.token);
+    try { sessionStorage.setItem(TOKEN_KEY, data.token); } catch {}
+  };
+
+  const logout = () => {
+    if (token) {
+      fetch(`${DASHBOARD_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
+    setToken(null);
+    try { sessionStorage.removeItem(TOKEN_KEY); } catch {}
+  };
+
+  return { token, login, logout };
+}
+
+function LoginGate({ onLogin }) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await onLogin(password);
+    } catch (err) {
+      setError(
+        /fetch/i.test(err.message)
+          ? 'Impossible de joindre le tableau de bord local — vérifie qu\'il est bien lancé sur ce poste.'
+          : err.message
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="pa-page">
+      <div className="pa-card" style={{ maxWidth: 360 }}>
+        <h2 className="pa-title" style={{ marginBottom: 16 }}>Connexion admin</h2>
+        <form onSubmit={submit}>
+          <input
+            type="password"
+            className="pa-input pa-input--full"
+            placeholder="Mot de passe"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            autoFocus
+          />
+          {error && <p style={{ color: '#dc2626', fontSize: 13, marginTop: 8 }}>{error}</p>}
+          <button type="submit" className="pa-btn-add" style={{ width: '100%', marginTop: 12 }} disabled={busy}>
+            {busy ? 'Connexion...' : 'Se connecter'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 function hexToFilter(hex) {
@@ -210,10 +294,11 @@ function PositionsSection({ positions, onChange }) {
 export default function PricesAdmin() {
   const { prices, setLivePrices } = usePrices();
   const { config, setLiveConfig } = useConfig();
+  const { token, login, logout } = useAdminAuth();
 
-  // Auto-save debounced : écrit dans le fichier 1.2s après le dernier changement
-  useDebounceWrite(prices, '/api/prices');
-  useDebounceWrite(config, '/api/config');
+  // Auto-save debounced : écrit dans le fichier 1.2s après le dernier changement (nécessite d'être connecté)
+  useDebounceWrite(prices, `${DASHBOARD_URL}/api/site-prices`, token);
+  useDebounceWrite(config, `${DASHBOARD_URL}/api/site-config`, token);
 
   const updatePrices    = (next) => setLivePrices(next);
   const updatePositions = (nextPositions) => setLiveConfig({ ...config, positions: nextPositions });
@@ -223,12 +308,21 @@ export default function PricesAdmin() {
   const setDelivery  = (key, val)  => updatePrices({ ...prices, delivery: { ...prices.delivery, [key]: Number(val) } });
   const setMinUnits  = (val)       => updatePrices({ ...prices, minimum_units: parseInt(val) || 0 });
 
+  if (!token) {
+    return <LoginGate onLogin={login} />;
+  }
+
   return (
     <div className="pa-page">
       <div className="pa-card">
         <div className="pa-header">
           <h2 className="pa-title">Configuration</h2>
-          <Link to="/simulateur" className="pa-link-sim">Voir le simulateur →</Link>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <Link to="/simulateur" className="pa-link-sim">Voir le simulateur →</Link>
+            <button type="button" className="pa-link-sim" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={logout}>
+              Déconnexion
+            </button>
+          </div>
         </div>
 
         <ColorsSection colors={config.colors ?? []} onChange={updateColors} />
