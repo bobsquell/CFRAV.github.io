@@ -11,7 +11,7 @@ function Footer() {
                 <polyline points="4,7 12,13 20,7" fill="none" stroke="currentColor" strokeWidth="1.5" />
               </svg>
             </span>
-            Simon Poirson – cfrav@proton.me – 06 64 94 37 21
+            Simon Poirson – cfrav@proton.me – 06 11 47 08 23
           </p>
         </div>
       </div>
