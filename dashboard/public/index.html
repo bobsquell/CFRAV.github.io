@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Commandes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .upload-section {
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.02);
+        }
+
+        .upload-section input {
+            display: none;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-en_attente {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-en_cours {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-livré {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-livree {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-annulé {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-annulee {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard--single {
+            grid-template-columns: 1fr;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 800px;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .count-badge {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .orders-table thead {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+        }
+
+        .orders-table th {
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .orders-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .orders-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .orders-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background: #e0e7ff;
+            color: #667eea;
+        }
+
+        .btn-edit:hover {
+            background: #c7d2fe;
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-delete:hover {
+            background: #fca5a5;
+        }
+
+        .no-data {
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .success-message {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .login-screen {
+            max-width: 360px;
+            margin: 80px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 32px;
+        }
+
+        .login-screen h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-error {
+            color: #dc2626;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .btn-config {
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-config:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-config:disabled {
+            opacity: 0.6;
+            cursor: default;
+            transform: none;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .orders-table {
+                font-size: 12px;
+            }
+
+            .orders-table th,
+            .orders-table td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Tableau de bord - Gestion Commandes</h1>
+        </div>
+
+        <!-- Écran de connexion -->
+        <div class="login-screen" id="loginScreen">
+            <h2>🔒 Connexion</h2>
+            <form onsubmit="handleLogin(event)">
+                <input type="password" id="loginPassword" class="login-input" placeholder="Mot de passe" autofocus>
+                <p class="login-error" id="loginError" style="display:none;"></p>
+                <button type="submit" class="btn-config" style="width:100%;">Se connecter</button>
+            </form>
+        </div>
+
+        <div class="dashboard dashboard--single" id="dashboardMain" style="display:none;">
+            <!-- Commandes -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>📦 Commandes à traiter</h2>
+                    <div class="header-actions">
+                        <span class="count-badge" id="orderCount">0</span>
+                        <button class="btn-link" onclick="downloadExcel()">⬇️ Excel</button>
+                        <button class="btn-link" onclick="handleLogout()">Déconnexion</button>
+                    </div>
+                </div>
+                <div class="filter-buttons" id="filterButtons"></div>
+                <div class="panel-content">
+                    <div id="ordersContainer">
+                        <div class="no-data">📭 Aucune commande pour le moment</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Édition Commande -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">Modifier la commande</div>
+            <form onsubmit="saveOrder(event)">
+                <div class="form-group">
+                    <label>Statut</label>
+                    <select id="editStatus" required>
+                        <option>En attente</option>
+                        <option>En cours</option>
+                        <option>Livré</option>
+                        <option>Annulé</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="editNotes" placeholder="Ajouter des notes..."></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Message de succès -->
+    <div class="success-message" id="successMsg">✅ Opération réussie!</div>
+
+    <script>
+        let orders = [];
+        let currentFilter = 'all';
+        let editingOrderId = null;
+        let authToken = null;
+        try { authToken = sessionStorage.getItem('cfrav_dashboard_token'); } catch {}
+
+        // ===== AUTHENTIFICATION =====
+        function authHeaders() {
+            return { Authorization: `Bearer ${authToken}` };
+        }
+
+        function showLoggedOut() {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('dashboardMain').style.display = 'none';
+        }
+
+        function showLoggedIn() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardMain').style.display = '';
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+            errorEl.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    errorEl.textContent = data.error || 'Erreur de connexion';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                authToken = data.token;
+                try { sessionStorage.setItem('cfrav_dashboard_token', authToken); } catch {}
+                showLoggedIn();
+                loadData();
+            } catch (err) {
+                errorEl.textContent = 'Impossible de contacter le serveur';
+                errorEl.style.display = 'block';
+            }
+        }
+
+        function handleLogout() {
+            if (authToken) {
+                fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() }).catch(() => {});
+            }
+            authToken = null;
+            try { sessionStorage.removeItem('cfrav_dashboard_token'); } catch {}
+            showLoggedOut();
+        }
+
+        // ===== CHARGEMENT INITIAL =====
+        let refreshInterval = null;
+
+        async function loadData() {
+            await loadOrders();
+            if (!refreshInterval) {
+                refreshInterval = setInterval(loadOrders, 5000);
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await fetch('/api/orders', { headers: authHeaders() });
+                if (res.status === 401) { handleLogout(); return; }
+                const newOrders = await res.json();
+
+                // Mettre à jour seulement si les données ont changé
+                if (JSON.stringify(newOrders) !== JSON.stringify(orders)) {
+                    orders = newOrders;
+                    renderOrders();
+                    updateFilters();
+                }
+            } catch (err) {
+                console.error('Erreur chargement commandes:', err);
+            }
+        }
+
+        async function downloadExcel() {
+            try {
+                const res = await fetch('/api/orders/export', { headers: authHeaders() });
+                if (res.status === 401) { handleLogout(); return; }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `commandes-${new Date().toISOString().slice(0, 10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert('Erreur téléchargement: ' + err.message);
+            }
+        }
+
+        if (authToken) {
+            showLoggedIn();
+            loadData();
+        } else {
+            showLoggedOut();
+        }
+
+        // ===== FILTRES =====
+        function updateFilters() {
+            const statuses = [...new Set(orders.map(o => o.status))];
+            const filterButtons = document.getElementById('filterButtons');
+            filterButtons.innerHTML = `<button class="filter-btn active" onclick="setFilter('all')">Tous</button>`;
+            
+            statuses.forEach(status => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.textContent = status;
+                btn.onclick = () => setFilter(status);
+                filterButtons.appendChild(btn);
+            });
+        }
+
+        function setFilter(status) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            renderOrders();
+        }
+
+        // ===== AFFICHAGE COMMANDES =====
+        function renderOrders() {
+            const filtered = currentFilter === 'all' ? orders : orders.filter(o => o.status === currentFilter);
+            const container = document.getElementById('ordersContainer');
+            document.getElementById('orderCount').textContent = filtered.length;
+
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="no-data">📭 Aucune commande pour le moment</div>';
+                return;
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-data">📭 Aucune commande pour ce filtre</div>';
+                return;
+            }
+
+            const html = `
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Commande</th>
+                            <th>Client</th>
+                            <th>Produit</th>
+                            <th>Livraison souhaitée</th>
+                            <th>Statut</th>
+                            <th style="width: 60px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(order => `
+                            <tr>
+                                <td class="order-id">${order.id}</td>
+                                <td>${order.client}</td>
+                                <td>${order.product}</td>
+                                <td>${order.livraisonSouhaitee || '—'}</td>
+                                <td><span class="status-badge status-${order.status.toLowerCase().replace(' ', '_')}">${order.status}</span></td>
+                                <td>
+                                    <div class="order-actions">
+                                        <button class="btn-small btn-edit" onclick="openEditModal('${order.id}')">✏️</button>
+                                        <button class="btn-small btn-delete" onclick="deleteOrder('${order.id}')">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = html;
+        }
+
+        // ===== ÉDITION COMMANDE =====
+        function openEditModal(orderId) {
+            editingOrderId = orderId;
+            const order = orders.find(o => o.id === orderId);
+            document.getElementById('editStatus').value = order.status;
+            document.getElementById('editNotes').value = order.notes || '';
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        async function saveOrder(e) {
+            e.preventDefault();
+            const status = document.getElementById('editStatus').value;
+            const notes = document.getElementById('editNotes').value;
+
+            try {
+                const res = await fetch(`/api/orders/${editingOrderId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+                    body: JSON.stringify({ status, notes })
+                });
+                
+                if (res.ok) {
+                    closeModal();
+                    await loadOrders();
+                    showSuccess('✅ Commande mise à jour!');
+                }
+            } catch (err) {
+                alert('Erreur: ' + err.message);
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm('Supprimer cette commande?')) return;
+
+            try {
+                const res = await fetch(`/api/orders/${orderId}`, { method: 'DELETE', headers: authHeaders() });
+                if (res.ok) {
+                    await loadOrders();
+                    showSuccess('✅ Commande supprimée!');
+                }
+            } catch (err) {
+                alert('Erreur: ' + err.message);
+            }
+        }
+
+        // ===== UTILITAIRES =====
+        function showSuccess(message) {
+            const msgEl = document.getElementById('successMsg');
+            msgEl.textContent = message;
+            msgEl.classList.add('show');
+            setTimeout(() => msgEl.classList.remove('show'), 3000);
+        }
+
+        // Fermer modal si on clique en dehors
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target.id === 'editModal') closeModal();
+        });
+    </script>
+</body>
+</html>
