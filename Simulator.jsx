@@ -419,6 +419,7 @@ function Simulator() {
   const [clientEmail, setClientEmail] = useState('');
   const [clientVille, setClientVille] = useState('');
   const [clientInstagram, setClientInstagram] = useState('');
+  const [clientDeliveryDate, setClientDeliveryDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [orderSent, setOrderSent] = useState(false);
@@ -580,6 +581,7 @@ function Simulator() {
           email: clientEmail.trim(),
           ville: clientVille.trim(),
           instagram: clientInstagram.trim(),
+          dateLivraisonSouhaitee: clientDeliveryDate,
           produit: buildOrderSummary(),
           montant: `${grandTotal}€`,
         }),
@@ -1029,6 +1031,16 @@ function Simulator() {
                   placeholder="Compte Instagram (optionnel)"
                   value={clientInstagram}
                   onChange={e => setClientInstagram(e.target.value)}
+                />
+                <label className="per-color-hint" style={{ display: 'block', marginBottom: '4px' }}>
+                  Date de livraison souhaitée (optionnel)
+                </label>
+                <input
+                  type="date"
+                  className="client-info-input"
+                  value={clientDeliveryDate}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={e => setClientDeliveryDate(e.target.value)}
                 />
                 <p className="per-color-hint" style={{ marginTop: '-2px' }}>Téléphone ou email requis (au moins un des deux).</p>
                 {submitError && <p className="submit-error-text">{submitError}</p>}
