@@ -54,6 +54,12 @@ function loadConfig() {
 
 loadConfig();
 
+// Sur un hébergement sans disque persistant (Render...), pas de config.json à éditer :
+// le mot de passe se règle via la variable d'environnement ADMIN_PASSWORD.
+if (process.env.ADMIN_PASSWORD) {
+  config.adminPassword = process.env.ADMIN_PASSWORD;
+}
+
 // ===== BASE DE DONNÉES (commandes) =====
 
 if (!process.env.DATABASE_URL) {
