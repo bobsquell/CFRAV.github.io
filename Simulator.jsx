@@ -413,9 +413,12 @@ function Simulator() {
   const [sizes, setSizes] = useState({});
   const [activeColorId, setActiveColorId] = useState(null);
   const [delivery, setDelivery] = useState(null);
-  const [clientName, setClientName] = useState('');
+  const [clientPrenom, setClientPrenom] = useState('');
+  const [clientNom, setClientNom] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [clientEmail, setClientEmail] = useState('');
+  const [clientVille, setClientVille] = useState('');
+  const [clientInstagram, setClientInstagram] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [orderSent, setOrderSent] = useState(false);
@@ -557,18 +560,26 @@ function Simulator() {
   };
 
   const hasContactMethod = clientPhone.trim() || clientEmail.trim();
+  const isPhoneValid = (v) => /^(?:\+33|0)[1-9](?:[\s.-]?\d{2}){4}$/.test(v.trim());
+  const isEmailValid = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const phoneOk = !clientPhone.trim() || isPhoneValid(clientPhone);
+  const emailOk = !clientEmail.trim() || isEmailValid(clientEmail);
 
   const handleSubmitOrder = async () => {
-    if (!clientName.trim() || !hasContactMethod || !delivery || isSubmitting) return;
+    if (!clientNom.trim() || !clientPrenom.trim() || !hasContactMethod || !phoneOk || !emailOk || !delivery || isSubmitting) return;
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      const contactParts = [clientPhone.trim(), clientEmail.trim()].filter(Boolean);
       const res = await fetch(DASHBOARD_ORDERS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client: [clientName.trim(), ...contactParts].join(', '),
+          nom: clientNom.trim(),
+          prenom: clientPrenom.trim(),
+          telephone: clientPhone.trim(),
+          email: clientEmail.trim(),
+          ville: clientVille.trim(),
+          instagram: clientInstagram.trim(),
           produit: buildOrderSummary(),
           montant: `${grandTotal}€`,
         }),
@@ -978,23 +989,46 @@ function Simulator() {
                 <input
                   type="text"
                   className="client-info-input"
+                  placeholder="Prénom"
+                  value={clientPrenom}
+                  onChange={e => setClientPrenom(e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="client-info-input"
                   placeholder="Nom"
-                  value={clientName}
-                  onChange={e => setClientName(e.target.value)}
+                  value={clientNom}
+                  onChange={e => setClientNom(e.target.value)}
                 />
                 <input
                   type="tel"
-                  className="client-info-input"
+                  className={`client-info-input${!phoneOk ? ' client-info-input--invalid' : ''}`}
                   placeholder="Téléphone"
                   value={clientPhone}
                   onChange={e => setClientPhone(e.target.value)}
                 />
+                {!phoneOk && <p className="input-error-text">Numéro de téléphone invalide (ex: 06 12 34 56 78).</p>}
                 <input
                   type="email"
-                  className="client-info-input"
+                  className={`client-info-input${!emailOk ? ' client-info-input--invalid' : ''}`}
                   placeholder="Email"
                   value={clientEmail}
                   onChange={e => setClientEmail(e.target.value)}
+                />
+                {!emailOk && <p className="input-error-text">Adresse email invalide.</p>}
+                <input
+                  type="text"
+                  className="client-info-input"
+                  placeholder="Ville"
+                  value={clientVille}
+                  onChange={e => setClientVille(e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="client-info-input"
+                  placeholder="Compte Instagram (optionnel)"
+                  value={clientInstagram}
+                  onChange={e => setClientInstagram(e.target.value)}
                 />
                 <p className="per-color-hint" style={{ marginTop: '-2px' }}>Téléphone ou email requis (au moins un des deux).</p>
                 {submitError && <p className="submit-error-text">{submitError}</p>}
@@ -1010,7 +1044,7 @@ function Simulator() {
               isBusy ||
               (step === 2 && step2Blocked) ||
               (step === 3 && step3Blocked) ||
-              (step === totalSteps && (!delivery || !clientName.trim() || !hasContactMethod || isSubmitting))
+              (step === totalSteps && (!delivery || !clientNom.trim() || !clientPrenom.trim() || !hasContactMethod || !phoneOk || !emailOk || isSubmitting))
             }
           >
             {step === totalSteps ? (isSubmitting ? 'Envoi en cours…' : 'Envoyer ma commande →') : 'Étape suivante'}
