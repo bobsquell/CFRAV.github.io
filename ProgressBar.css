@@ -1,0 +1,45 @@
+.pg-container {
+  width: calc(100% - 20px);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pg-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #555;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.pg-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+.pg-arrow {
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1;
+  color: #888;
+  cursor: pointer;
+}
+
+.pg-track {
+  width: 100%;
+  height: 6px;
+  background-color: #eee;
+  border-radius: 10px;
+}
+
+.pg-bar {
+  height: 100%;
+  background-color: #f2b01e; /* Le jaune orangé de ta capture */
+  transition: width 0.4s ease-out; /* Animation fluide quand l'étape change */
+  border-radius: 10px;
+}

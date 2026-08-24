@@ -1,0 +1,20 @@
+{
+  "broderie": {
+    "base": 25,
+    "above70": 26,
+    "above140": 23,
+    "equal140": 24
+  },
+  "flocage": {
+    "base": 15,
+    "above70": 21,
+    "above80": 19,
+    "above140": 18
+  },
+  "delivery": {
+    "terrestre": 2,
+    "maritime": 0,
+    "aerienne": 10
+  },
+  "minimum_units": 25
+}
