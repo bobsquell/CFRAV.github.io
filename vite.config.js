@@ -7,6 +7,9 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  // Le repo n'est pas nommé <compte>.github.io, donc GitHub Pages sert ce site
+  // sous https://bobsquell.github.io/CFRAV.github.io/ (sous-chemin, pas la racine).
+  base: '/CFRAV.github.io/',
   plugins: [
     react(),
     {

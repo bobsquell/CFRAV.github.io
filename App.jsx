@@ -10,7 +10,7 @@ function App() {
   return (
     <ConfigProvider>
       <PricesProvider>
-        <BrowserRouter>
+        <BrowserRouter basename="/CFRAV.github.io">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/offre" element={<OffrePage />} />
